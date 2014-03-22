@@ -5,42 +5,65 @@ import argparse
 
 # Get GPU information
 def getGPU():
-	gpu_count = raw_input("Number of GPU: ")
-        gpu_split = raw_input("Hash split (0=NONE, 1=50/50): ")
+	try:
+		gpu_count = int(raw_input("Number of GPU: "))
+	except ValueError:
+		print "[D] Not an integer"
+		return
+        try:
+		gpu_split = int(raw_input("Hash split (0=NONE, 1=50/50): "))
+	except ValueError:
+		print "[D] Not an integer"
+		return
 	gpu_info = [gpu_count,gpu_split]
 	return gpu_info
 
-def getPoolInfo(num):
+def getPoolInfo(pool_num):
 	pool_info = []
-	while int(num) > 0:
+	pool = 'Primary'
+	while int(pool_num) > 0:
+		print "\n[*] Get %s pool info" % pool
 		pool_name = raw_input("Pool name: ")
-		pool_addr = raw_input("Pool address: ")
+		pool_addr = raw_input("Pool address (no port): ")
+		pool_port = raw_input("Pool port: ")
 		pool_worker = raw_input("Pool worker name: ")
 		pool_worker_pw = raw_input("Pool worker password: ")
-		pool_info.append([pool_name,pool_addr,pool_worker,pool_worker_pw])
-		num = int(num) - 1
+		pool_info.append([pool,pool_name,pool_addr,pool_port,pool_worker,pool_worker_pw])
+		if pool == 'Primary':
+			pool = 'Secondary'
+		elif pool == 'Secondary':
+			pool = 'Tertiary'
+		elif pool == 'Tertiary':
+			pool = 'Other'
+		else:
+			pool = 'Other'
+		pool_num = int(pool_num) - 1
 	return pool_info
 
 # print pool information
 def printPoolInfo(pools):
 	for pool in pools:
-		print "Pool name: %s" % pool[0]
-		print "Pool address: %s" % pool[1]
-		print "Pool worker: %s" % pool[2]
-		print "Pool worker pw: %s" % pool[3]
-		print "----------------------"
+		print "\n%s" % pool[0]
+		print "Pool name: %s" % pool[1]
+		print "Pool address: %s" % pool[2]
+		print "Pool port: %s" % pool[3]
+		print "Pool worker: %s" % pool[4]
+		print "Pool worker pw: %s" % pool[5]
 		
 
 def main(config):
 	print "[*] Minecontrol config builder\n"
 	gpu_info = getGPU()
-	num = raw_input("How many pools to configure? ")
-	pool_info = getPoolInfo(num)
-	print "GPU Info"
-	print "--------"
-	for info in gpu_info:
-		print info
-	printPoolInfo(pool_info)	
+	if gpu_info:
+		try:
+			num = int(raw_input("How many pools to configure?[1-4] "))
+		except ValueError:
+			print "[D] Not an integer...bailing out"
+			return	
+		pool_info = getPoolInfo(num)
+		printPoolInfo(pool_info)	
+	else:
+		print "[D] Input errors...bailing out"
 
 # Start here
 if __name__ == "__main__":

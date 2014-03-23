@@ -41,27 +41,41 @@ def getPoolInfo(pool_num):
 	return pool_info
 
 # print pool information
-def printPoolInfo(pools):
+def writePoolInfo(pools,conf_file):
+	outfile = file(conf_file,'a+')
 	for pool in pools:
-		print "\n%s" % pool[0]
-		print "Pool name: %s" % pool[1]
-		print "Pool address: %s" % pool[2]
-		print "Pool port: %s" % pool[3]
-		print "Pool worker: %s" % pool[4]
-		print "Pool worker pw: %s" % pool[5]
+		outfile.write("\n[%s]" % pool[0])
+		outfile.write("\nname=%s" % pool[1])
+		outfile.write("\npool=%s" % pool[2])
+		outfile.write("\nport=%s" % pool[3])
+		outfile.write("\nworker=%s" % pool[4])
+		outfile.write("\npassword=%s\n" % pool[5])
+	outfile.close()	
 		
+def writeGPUInfo(gpu_info,conf_file):
+	outfile = file(conf_file, 'a+')
+	outfile.write("[Main]\n")
+	outfile.write("gpu_num=%s\n" % gpu_info[0])
+	outfile.write("gpu_split=%s\n" % gpu_info[1])
+	outfile.close()
+	
+
 
 def main(config):
 	print "[*] Minecontrol config builder\n"
+	config = 'conf/' + config
+	config_file = open(config, 'w')
+	config_file.close()
 	gpu_info = getGPU()
 	if gpu_info:
+		writeGPUInfo(gpu_info,config)
 		try:
 			num = int(raw_input("How many pools to configure?[1-4] "))
 		except ValueError:
 			print "[D] Not an integer...bailing out"
 			return	
 		pool_info = getPoolInfo(num)
-		printPoolInfo(pool_info)	
+		writePoolInfo(pool_info,config)	
 	else:
 		print "[D] Input errors...bailing out"
 
@@ -70,7 +84,7 @@ if __name__ == "__main__":
         pool = ""
         config = 'conf/mining.conf'
         parser = argparse.ArgumentParser(version="1.0",description="Minecontrol config builder")
-        parser.add_argument('config', help='Config file with pool lists; default: conf/mining.conf', metavar='CONFIG')
+        parser.add_argument('config', help='Config file to build (placed in conf dir); default: conf/mining.conf', metavar='CONFIG')
         args = parser.parse_args()
         config = args.config
         main(config)

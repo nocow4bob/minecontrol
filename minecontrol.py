@@ -52,7 +52,7 @@ def checkCuda():
 # Main function
 def main(config,pool):
 	outfile = open('/home/miner/mining/miner.log','a')
-	outfile.write("\n[*] Running mining.py at %s\n" % (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())))
+	outfile.write("\n[*] Running minecontrol.py at %s\n" % (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())))
 	
 	# kill all cuda processes running before continuing
 	outfile.write("[*] Killing cudaminer processes: %s\n" % str(killCuda()))

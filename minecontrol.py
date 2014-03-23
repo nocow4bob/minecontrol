@@ -5,6 +5,7 @@
 
 import httplib
 import urllib2
+import socket
 import sys
 import base64
 import argparse
@@ -13,6 +14,7 @@ import Queue
 import subprocess
 import psutil
 import time
+import includes/healthchecks
 from time import localtime, strftime
 from ConfigParser import SafeConfigParser
 
@@ -105,6 +107,10 @@ def main(config,pool):
 					outfile.write(" [*] Cudaminer starting at ZERO split\n")
 					subprocess.Popen(["cudaminer", "-S", "-o", primary_connection,"-u", primary_worker, "-p", pri_worker_pw], stdout=subprocess.PIPE)
 				else:
+					#if not checkStratum(primary_connection,primary_worker,pri_worker_pw):
+					#	outfile.write(" [!] Primary connection down. Connecting to secondary..."
+					#	subprocess.Popen(["cudaminer", "-S", "-o", secondary_connection,"-u", secondary_worker, "-p", sec_worker_pw], stdout=subprocess.PIPE)
+					#else:
 					time.sleep(10)
 		elif gpu_split == 1:
 			while True:

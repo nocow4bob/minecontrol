@@ -105,16 +105,16 @@ def main(config,pool):
 					subprocess.Popen(["cudaminer", "-S", "-d0", "-o", primary_connection,"-u", primary_worker, "-p", pri_worker_pw], stdout=subprocess.PIPE)
 					subprocess.Popen(["cudaminer", "-S", "-d1", "-o", secondary_connection,"-u", secondary_worker, "-p", sec_worker_pw], stdout=subprocess.PIPE)			
 				else:
-					if not checkStratum(primary_pool,primary_port,primary_worker,pri_worker_pw):
-                                        	outfile.write(" [!] Primary connection down. Connecting to tertiary...")
-                                                subprocess.Popen(["cudaminer", "-S", "-d0","-o", tert_connection,"-u", tert_worker, "-p", tert_worker_pw], stdout=subprocess.PIPE)
-					else:
-                                                time.sleep(5)
-					if not checkStratum(secondary_pool,secondary_port,secondary_worker,sec_worker_pw):
-						outfile.write(" [!] Secondary connection down. Connecting to tertiary...")
-                                                subprocess.Popen(["cudaminer", "-S", "-d1","-o", tert_connection,"-u", tert_worker, "-p", tert_worker_pw], stdout=subprocess.PIPE)                                   
-					else:
-						time.sleep(10)
+					#if not checkStratum(primary_pool,primary_port,primary_worker,pri_worker_pw):
+                                        #	outfile.write(" [!] Primary connection down. Connecting to tertiary...")
+                                        #        subprocess.Popen(["cudaminer", "-S", "-d0","-o", tert_connection,"-u", tert_worker, "-p", tert_worker_pw], stdout=subprocess.PIPE)
+					#else:
+                                        #        time.sleep(5)
+					#if not checkStratum(secondary_pool,secondary_port,secondary_worker,sec_worker_pw):
+					#	outfile.write(" [!] Secondary connection down. Connecting to tertiary...")
+                                        #        subprocess.Popen(["cudaminer", "-S", "-d1","-o", tert_connection,"-u", tert_worker, "-p", tert_worker_pw], stdout=subprocess.PIPE)                                   
+					#else:
+					time.sleep(10)
 		else: 
 			outfile.write(" [X] No split found. Cudaminer not started\n")
 

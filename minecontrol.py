@@ -14,7 +14,7 @@ import Queue
 import subprocess
 import psutil
 import time
-import includes/healthchecks
+from includes.healthchecks import *
 from time import localtime, strftime
 from ConfigParser import SafeConfigParser
 
@@ -35,25 +35,9 @@ def killCuda():
 	return killed	
 	
 
-# Check if cudaminer is running
-def checkCuda():
-	running = False
-	PROCNAME = "cudaminer"
-	for proc in psutil.process_iter():
-        	try:
-                	pinfo = proc.as_dict(attrs=['pid', 'name'])
-        	except psutil.NoSuchProcess:
-                	pass
-                else:
-                        if pinfo['name'] == PROCNAME:
-                                running = True
-	return running
-
-
-
 # Main function
 def main(config,pool):
-	outfile = open('/home/miner/mining/miner.log','a')
+	outfile = open('miner.log','a')
 	outfile.write("\n[*] Running minecontrol.py at %s\n" % (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())))
 	
 	# kill all cuda processes running before continuing
@@ -97,8 +81,10 @@ def main(config,pool):
                 tert_section = 'Tertiary'
                 tert_name = cp.get(tert_section,'name')
                 tert_pool = cp.get(tert_section,'pool')
-                worker_name = cp.get(tert_section,'worker')
-                worker_pw = cp.get(tert_section,'password')
+		tert_port = cp.get(tert_section,'port')
+                tert_worker = cp.get(tert_section,'worker')
+                tert_worker_pw = cp.get(tert_section,'password')
+		tert_connection = "stratum+tcp://%s:%s" % (tert_pool,tert_port)
 		
 		# Start the cudaminer process
 		if gpu_split == 0:
@@ -107,11 +93,11 @@ def main(config,pool):
 					outfile.write(" [*] Cudaminer starting at ZERO split\n")
 					subprocess.Popen(["cudaminer", "-S", "-o", primary_connection,"-u", primary_worker, "-p", pri_worker_pw], stdout=subprocess.PIPE)
 				else:
-					#if not checkStratum(primary_connection,primary_worker,pri_worker_pw):
-					#	outfile.write(" [!] Primary connection down. Connecting to secondary..."
-					#	subprocess.Popen(["cudaminer", "-S", "-o", secondary_connection,"-u", secondary_worker, "-p", sec_worker_pw], stdout=subprocess.PIPE)
-					#else:
-					time.sleep(10)
+					if not checkStratum(primary_pool,primary,port,primary_worker,pri_worker_pw):
+						outfile.write(" [!] Primary connection down. Connecting to secondary...")
+						subprocess.Popen(["cudaminer", "-S", "-o", secondary_connection,"-u", secondary_worker, "-p", sec_worker_pw], stdout=subprocess.PIPE)
+					else:
+						time.sleep(10)
 		elif gpu_split == 1:
 			while True:
 				if not checkCuda():
@@ -119,8 +105,16 @@ def main(config,pool):
 					subprocess.Popen(["cudaminer", "-S", "-d0", "-o", primary_connection,"-u", primary_worker, "-p", pri_worker_pw], stdout=subprocess.PIPE)
 					subprocess.Popen(["cudaminer", "-S", "-d1", "-o", secondary_connection,"-u", secondary_worker, "-p", sec_worker_pw], stdout=subprocess.PIPE)			
 				else:
-					#outfile.write("[D] Cuda already running...\n")
-					time.sleep(10)
+					if not checkStratum(primary_pool,primary_port,primary_worker,pri_worker_pw):
+                                        	outfile.write(" [!] Primary connection down. Connecting to tertiary...")
+                                                subprocess.Popen(["cudaminer", "-S", "-d0","-o", tert_connection,"-u", tert_worker, "-p", tert_worker_pw], stdout=subprocess.PIPE)
+					else:
+                                                time.sleep(5)
+					if not checkStratum(secondary_pool,secondary_port,secondary_worker,sec_worker_pw):
+						outfile.write(" [!] Secondary connection down. Connecting to tertiary...")
+                                                subprocess.Popen(["cudaminer", "-S", "-d1","-o", tert_connection,"-u", tert_worker, "-p", tert_worker_pw], stdout=subprocess.PIPE)                                   
+					else:
+						time.sleep(10)
 		else: 
 			outfile.write(" [X] No split found. Cudaminer not started\n")
 

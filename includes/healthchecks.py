@@ -8,24 +8,38 @@ import psutil
 
 # check stratum connections
 def checkStratum(address,port,worker,password):
-        MESSAGE = "{\"id\": 1, \"method\": \"mining.subscribe\", \"params\": [\"healthcheck\"]}"
+        response = []
+	MESSAGE = "{\"id\": 1, \"method\": \"mining.subscribe\", \"params\": [\"healthcheck\"]}\n"
 	TCP_IP = address
 	TCP_PORT = int(port)
 	BUFFER_SIZE = 1024 
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.connect((TCP_IP, TCP_PORT))
+	try:
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		s.connect((TCP_IP, TCP_PORT))
+	except Exception, e:
+		print e
+		return False
+	
 	s.send(MESSAGE)
 	data = s.recv(BUFFER_SIZE)
-	f = tempfile.NamedTemporaryFile(delete=False)
-	f.write(data)
-	f.close()
+	for line in data.splitlines():
+		response.append(line)
 	s.close()
-	resp = json.load(open(f.name))
-	os.unlink(f.name)
-	ans = resp.get('error')
-	if not ans:
-		return True
-	else:
+	
+	try:
+		with tempfile.NamedTemporaryFile() as temp:
+			temp.write(response[0])
+			temp.flush()
+			resp = json.load(open(temp.name))
+			ans = resp.get('error')
+			if not ans:
+				temp.close()
+				return True
+			else:
+				temp.close()
+				return False
+	except Exception, e:
+		print e
 		return False
 
 # Check if cudaminer is running

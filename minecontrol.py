@@ -37,6 +37,8 @@ def main(config,pool):
 	# kill all cuda processes running before continuing
 	logger.info("[*] Killing cudaminer processes: %s" % str(killCuda('')))
 	
+	pools = getConfig(config)
+	
 	if pool:
 		logger.debug("[D] Manual pool set: %s" % pool)
 	else:
@@ -53,6 +55,7 @@ def main(config,pool):
                 else:
                         logger.info("[*] Hash split = unknown (using 100%)")
         	
+		#pools = getConfig(config)
 		# Primary pool config
 		primary_section = 'Primary'
         	primary_name = cp.get(primary_section,'name')
@@ -79,6 +82,8 @@ def main(config,pool):
                 tertiary_worker = cp.get(tert_section,'worker')
                 tert_worker_pw = cp.get(tert_section,'password')
 		tertiary_connection = "stratum+tcp://%s:%s" % (tertiary_pool,tertiary_port)
+	
+		
 		
 		# Start the cudaminer process
 		if gpu_split == 0:
@@ -153,7 +158,6 @@ def main(config,pool):
                                                         time.sleep(10)
                                         else:
                                                 logger.info("[!] Tertiary pool down!!")
-					time.sleep(5)
 		else: 
 			logger.error("[X] No split found. Cudaminer not started\n")
 

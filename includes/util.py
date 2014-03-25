@@ -6,6 +6,7 @@ import tempfile
 import os
 import psutil
 import logging
+from ConfigParser import SafeConfigParser
 
 
 # kill any cudaminer processes that are currently running matching the cmdline arguments given
@@ -79,3 +80,31 @@ def checkCuda(instance):
                                         if instance in obj:
                                         	return True
 	return False
+
+
+# Get pool configuration
+def getConfig(config):
+	cp = SafeConfigParser()
+        cp.optionxform = str # Preserves case sensitivity
+        cp.readfp(open(config, 'r'))
+        
+	pools = []
+	sections = ['Primary','Secondary','Tertiary','Other']
+	
+	main_section = 'Main'
+        gpu_split = int(cp.get(main_section,'gpu_split'))
+	pools.append([main_section,gpu_split])
+	# Primary pool config
+        for section in sections:
+		try:	
+			name = cp.get(section,'name')
+        		pool = cp.get(section,'pool')
+        		port = cp.get(section,'port')
+        		worker = cp.get(section,'worker')
+        		worker_pw = cp.get(section,'password')
+        		connection = "stratum+tcp://%s:%s" % (pool,port)
+			pools.append([section,name,pool,port,worker,worker_pw,connection])
+		except Exception, e:
+			print e
+	
+	return pools

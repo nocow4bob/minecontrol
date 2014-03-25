@@ -1,5 +1,7 @@
 Minecontrol TODO
 
 * Add ability to check stratum connection and failover on bad connections
+	-- added check stratum for single pool
+	* still need to add stratum check for multiple pools/cards
 
 

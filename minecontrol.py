@@ -73,12 +73,12 @@ def main(config,pool):
 	
 		# Tertiary pool config
                 tert_section = 'Tertiary'
-                tert_name = cp.get(tert_section,'name')
-                tert_pool = cp.get(tert_section,'pool')
-		tert_port = cp.get(tert_section,'port')
-                tert_worker = cp.get(tert_section,'worker')
+                tertiary_name = cp.get(tert_section,'name')
+                tertiary_pool = cp.get(tert_section,'pool')
+		tertiary_port = cp.get(tert_section,'port')
+                tertiary_worker = cp.get(tert_section,'worker')
                 tert_worker_pw = cp.get(tert_section,'password')
-		tert_connection = "stratum+tcp://%s:%s" % (tert_pool,tert_port)
+		tertiary_connection = "stratum+tcp://%s:%s" % (tertiary_pool,tertiary_port)
 		
 		# Start the cudaminer process
 		if gpu_split == 0:
@@ -107,28 +107,53 @@ def main(config,pool):
 						logger.info("[!] Secondary pool down!!")
 		elif gpu_split == 1:
 			while True:
-				if not checkCuda(primary_connection):
-					logger.info("[*] Cudaminer starting for %s" % primary_connection)
-					subprocess.Popen(["cudaminer", "-S", "-d0", "-o", primary_connection,"-u", primary_worker, "-p", pri_worker_pw], stdout=subprocess.PIPE)
-					if not checkCuda(secondary_connection):	
-						logger.info("[*] Cudaminer starting for %s" % secondary_connection)
-						subprocess.Popen(["cudaminer", "-S", "-d1", "-o", secondary_connection,"-u", secondary_worker, "-p", sec_worker_pw], stdout=subprocess.PIPE)			
-					time.sleep(10)	
+				# Check primary pool status
+				if checkStratum(primary_pool,primary_port,primary_worker,pri_worker_pw):
+					if not checkCuda(primary_connection):
+						if checkCuda(tertiary_connection):
+				                	logger.info("[*] Tertiary pool connected while primary is up. Killing tertiary")
+                                                        killCuda(tertiary_connection)
+						logger.info("[*] Cudaminer starting for %s" % primary_connection)
+						subprocess.Popen(["cudaminer", "-S", "-d0", "-o", primary_connection,"-u", primary_worker, "-p", pri_worker_pw], stdout=subprocess.PIPE)
+					else:
+						time.sleep(10)
 				else:
+					logger.info("[!] Primary pool down!")
+					if checkCuda(primary_connection):
+						logger.info("[!] Killing primary connection...")
+						killCuda(primary_connection)
+					if checkStratum(tertiary_pool,tertiary_port,tertiary_worker,tert_worker_pw):
+                                                if not checkCuda(tertiary_connection):
+                                                        logger.info("[!] Connecting to tertiary pool at %s..." % tertiary_connection)
+                                                        subprocess.Popen(["cudaminer", "-S", "-o", tertiary_connection,"-u", tertiary_worker, "-p", tert_worker_pw], stdout=subprocess.PIPE)
+                                                else:
+                                                        time.sleep(10)
+                                        else:
+                                                logger.info("[!] Tertiary pool down!!")
+				# Check secondary pool status
+				if checkStratum(secondary_pool,secondary_port,secondary_worker,sec_worker_pw):
 					if not checkCuda(secondary_connection):	
+						if checkCuda(tertiary_connection):
+							logger.info("[*] Tertiary pool connected while secondary is up. Killing tertiary")
+							killCuda(tertiary_connection)
 						logger.info("[*] Cudaminer starting for %s" % secondary_connection)
 						subprocess.Popen(["cudaminer", "-S", "-d1", "-o", secondary_connection,"-u", secondary_worker, "-p", sec_worker_pw], stdout=subprocess.PIPE)			
-					
-					#if not checkStratum(primary_pool,primary_port,primary_worker,pri_worker_pw):
-                                        #	logger.info(" [!] Primary connection down. Connecting to tertiary...")
-                                        #        subprocess.Popen(["cudaminer", "-S", "-d0","-o", tert_connection,"-u", tert_worker, "-p", tert_worker_pw], stdout=subprocess.PIPE)
-					#else:
-                                        #        time.sleep(5)
-					#if not checkStratum(secondary_pool,secondary_port,secondary_worker,sec_worker_pw):
-					#	logger.info(" [!] Secondary connection down. Connecting to tertiary...")
-                                        #        subprocess.Popen(["cudaminer", "-S", "-d1","-o", tert_connection,"-u", tert_worker, "-p", tert_worker_pw], stdout=subprocess.PIPE)                                   
-					#else:
-					time.sleep(10)
+					else:
+						time.sleep(10)	
+				else:
+					logger.info("[!] Secondary pool down!")
+					if checkCuda(secondary_connection):
+						logger.info("[!] Killing secondary connection...")
+						killCuda(secondary_connection)
+					if checkStratum(tertiary_pool,tertiary_port,tertiary_worker,tert_worker_pw):
+                                                if not checkCuda(tertiary_connection):
+                                                        logger.info("[!] Connecting to tertiary pool at %s..." % tertiary_connection)
+                                                        subprocess.Popen(["cudaminer", "-S", "-o", tertiary_connection,"-u", tertiary_worker, "-p", tert_worker_pw], stdout=subprocess.PIPE)
+                                                else:
+                                                        time.sleep(10)
+                                        else:
+                                                logger.info("[!] Tertiary pool down!!")
+					time.sleep(5)
 		else: 
 			logger.error("[X] No split found. Cudaminer not started\n")
 

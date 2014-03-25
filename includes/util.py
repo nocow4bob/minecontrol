@@ -5,6 +5,7 @@ import urllib2
 import tempfile
 import os
 import psutil
+import logging
 
 
 # kill any cudaminer processes that are currently running matching the cmdline arguments given

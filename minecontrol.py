@@ -28,7 +28,7 @@ def main(config,pool):
 	outfile = '/home/miner/mining/minecontrol/miner.log'
 	handler = logging.FileHandler(outfile)
 	handler.setLevel(logging.INFO)
-	formatter = logging.Formatter('%(message)s')
+	formatter = logging.Formatter('%(asctime)s - %(message)s')
 	handler.setFormatter(formatter)
 	logger.addHandler(handler)
 	logger.info("---------------- Starting Minecontrol ----------------")
@@ -58,7 +58,8 @@ def main(config,pool):
 		#pools = getConfig(config)
 		# Primary pool config
 		primary_section = 'Primary'
-        	primary_name = cp.get(primary_section,'name')
+        	primary_algo = cp.get(primary_section,'algo')
+		primary_name = cp.get(primary_section,'name')
 		primary_pool = cp.get(primary_section,'pool')
         	primary_port = cp.get(primary_section,'port')
 		primary_worker = cp.get(primary_section,'worker')
@@ -67,6 +68,7 @@ def main(config,pool):
 
 		# Secondary pool config
 		secondary_section = 'Secondary'
+		secondary_algo = cp.get(secondary_section,'algo')
                 secondary_name = cp.get(secondary_section,'name')
                 secondary_pool = cp.get(secondary_section,'pool')
                 secondary_port = cp.get(secondary_section,'port')
@@ -76,7 +78,8 @@ def main(config,pool):
 	
 		# Tertiary pool config
                 tert_section = 'Tertiary'
-                tertiary_name = cp.get(tert_section,'name')
+                tertiary_algo = cp.get(tert_section,'algo')
+		tertiary_name = cp.get(tert_section,'name')
                 tertiary_pool = cp.get(tert_section,'pool')
 		tertiary_port = cp.get(tert_section,'port')
                 tertiary_worker = cp.get(tert_section,'worker')
